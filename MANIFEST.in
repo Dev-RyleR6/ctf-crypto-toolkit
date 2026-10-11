@@ -1,0 +1,3 @@
+include README.md CRYPTO_GUIDE.md LICENSE pyproject.toml .gitignore
+recursive-include scripts *.py
+recursive-include tests *.py
