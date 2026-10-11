@@ -11,6 +11,7 @@ import webbrowser
 
 TOPICS = {
     "quickstart": "Start here",
+    "commands": "Commands & options",
     "rsa": "RSA private keys",
     "aes": "AES decryption",
     "lfsr-aes": "LFSR + AES",
@@ -23,7 +24,25 @@ TOPICS = {
 
 def markdown(topic):
     names = TOPICS if topic == "all" else (topic,)
-    return "\n\n".join(resources.files("ctf_crypto_docs").joinpath(name + ".md").read_text(encoding="utf-8") for name in names)
+    content = []
+    for name in names:
+        if name == "commands":
+            from crypto_toolkit import build_parser
+            from crypto_help import catalog
+            content.append(catalog(build_parser()))
+        else:
+            content.append(resources.files("ctf_crypto_docs").joinpath(name + ".md").read_text(encoding="utf-8"))
+    return "\n\n".join(content)
+
+
+def catalog_html():
+    from crypto_toolkit import build_parser
+    from crypto_help import command_markdown, command_parsers
+    output = ['<h2>Commands, options &amp; examples</h2><p>Expand a command to see examples, every option, and the meaning of each choice. Search above to filter the catalog.</p>']
+    for name, parser in command_parsers(build_parser()).items():
+        output.append('<details class="command-card"><summary><code>{}</code><span>{}</span></summary>{}</details>'.format(
+            html.escape(name), html.escape(parser.description), blocks(command_markdown(name, parser))))
+    return "\n".join(output)
 
 
 def inline(text):
@@ -120,8 +139,9 @@ def visual_guide(topic="quickstart"):
     package = resources.files("ctf_crypto_docs")
     template = package.joinpath("guide.html").read_text(encoding="utf-8")
     nav = "".join('<a href="#{}">{}</a>'.format(name, title) for name, title in TOPICS.items())
-    sections = "".join('<section class="topic" id="{}" tabindex="-1">{}</section>'.format(name, blocks(markdown(name))) for name in TOPICS)
-    document = template.replace("{{NAV}}", nav).replace("{{CONTENT}}", sections).replace("{{TOPIC}}", topic if topic in TOPICS else "quickstart")
+    sections = "".join('<section class="topic" id="{}" tabindex="-1">{}</section>'.format(name, catalog_html() if name == "commands" else blocks(markdown(name))) for name in TOPICS)
+    from crypto_toolkit import __version__
+    document = template.replace("{{NAV}}", nav).replace("{{CONTENT}}", sections).replace("{{TOPIC}}", topic if topic in TOPICS else "quickstart").replace("{{VERSION}}", __version__)
     # Numeric HTML entities also survive Windows terminals using legacy encodings.
     return document.encode("ascii", "xmlcharrefreplace").decode("ascii")
 
@@ -152,6 +172,8 @@ def run(args):
                 "Encoded text / XOR / ciphers  ctf-crypto docs classical\n"
                 "Mystery file / ZIP / image    ctf-crypto docs misc\n\n"
                 "All command examples:   ctf-crypto docs reference\n"
+                "Help for one option:    ctf-crypto help rsa-key padding\n"
+                "Visual option catalog:  ctf-crypto docs commands --open\n"
                 "Save the visual guide:  ctf-crypto docs --out guide.html\n"
                 "Help for a command:     ctf-crypto rsa-key --help\n\n"
                 "From source, replace ctf-crypto with python crypto_toolkit.py.\n"

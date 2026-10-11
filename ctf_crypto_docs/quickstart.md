@@ -40,6 +40,22 @@ There is no universal decrypt button. You need the algorithm and its settings fo
 
 ## 3. Read the guide your way
 
+**Help for a command or one option:**
+
+```sh
+ctf-crypto help rsa-key
+ctf-crypto help rsa-key padding
+ctf-crypto help decode from
+```
+
+Use option names without their leading dashes. Focused help explains each choice with an example. Full command help also works as `ctf-crypto rsa-key --help`.
+
+**Browse every command, option, and choice** in expandable sections:
+
+```sh
+ctf-crypto docs commands --open
+```
+
 **Visual guide** with navigation, search, and copy buttons:
 
 ```sh
@@ -92,7 +108,7 @@ python -m pipx install --force ".[all]"
 
 The `.[all]` install includes both dependencies. Installation may need internet; toolkit commands work offline afterward.
 
-To run source or a portable `.pyz`, replace `ctf-crypto` with `python crypto_toolkit.py` or `python ctf-crypto-0.4.0.pyz`. For their optional features, install dependencies into the same Python environment:
+To run source or a portable `.pyz`, replace `ctf-crypto` with `python crypto_toolkit.py` or `python ctf-crypto-0.5.0.pyz`. For their optional features, install dependencies into the same Python environment:
 
 ```sh
 python -m pip install cryptography Pillow

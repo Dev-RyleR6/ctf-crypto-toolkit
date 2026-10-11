@@ -10,6 +10,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_FILES = (
+    "crypto_help.py", "tests/test_help.py",
     "crypto_rsa.py", "crypto_docs.py", "ctf_crypto_docs/rsa.md", "ctf_crypto_docs/guide.html", "tests/test_rsa_docs.py",
     "crypto_toolkit.py", "crypto_advanced.py", "crypto_extra.py", "ctf_misc.py", "README.md", "CRYPTO_GUIDE.md", "LICENSE",
     "pyproject.toml", "MANIFEST.in", ".gitignore",
@@ -20,7 +21,7 @@ SOURCE_FILES = (
     "ctf_crypto_docs/classical.md", "ctf_crypto_docs/misc.md",
     "examples/lfsr_aes_demo.txt", "examples/create_misc_demo.py",
 )
-PORTABLE_FILES = ("crypto_rsa.py", "crypto_docs.py", "ctf_crypto_docs/rsa.md", "ctf_crypto_docs/guide.html",
+PORTABLE_FILES = ("crypto_help.py", "crypto_rsa.py", "crypto_docs.py", "ctf_crypto_docs/rsa.md", "ctf_crypto_docs/guide.html",
                   "crypto_toolkit.py", "crypto_advanced.py", "crypto_extra.py", "ctf_misc.py", "README.md", "CRYPTO_GUIDE.md", "LICENSE",
                   "ctf_crypto_docs/__init__.py", "ctf_crypto_docs/quickstart.md", "ctf_crypto_docs/reference.md",
                   "ctf_crypto_docs/lfsr.md", "ctf_crypto_docs/aes.md", "ctf_crypto_docs/lfsr-aes.md",

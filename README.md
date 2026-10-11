@@ -75,7 +75,18 @@ Prefer an existing virtual environment? Activate it and run `python -m pip insta
 | ZIP archive | `zip-info`, `zip-read` | [File analysis](ctf_crypto_docs/misc.md) |
 | Image with hidden data | `image-info`, `lsb` | [File analysis](ctf_crypto_docs/misc.md) |
 
-Every command supports `--help`. Read the [full command reference](ctf_crypto_docs/reference.md) for examples.
+Every command supports `--help` with explanations, defaults, and complete examples. For a single option, use its name without the leading dashes:
+
+```sh
+ctf-crypto help
+ctf-crypto help rsa-key
+ctf-crypto help rsa-key padding
+ctf-crypto help decode from
+ctf-crypto help strings encoding
+ctf-crypto docs commands --open
+```
+
+The focused help explains every accepted choice and gives an option example for each. The visual catalog has an expandable section per command, with the same examples and option details. Examples that require your own files are labeled **Template**; immediately runnable examples show the expected result. Read the [quick command reference](ctf_crypto_docs/reference.md) for shorter recipes.
 
 ## RSA private-key example
 
@@ -151,6 +162,6 @@ python -m pip wheel --no-deps --wheel-dir dist .
 python scripts/build_release.py
 ```
 
-For a GitHub release tagged `v0.4.0`, attach the matching `.pyz`, source `.zip`, optional `.whl`, and `SHA256SUMS.txt`. Generated downloads are Git-ignored. The `.pyz` includes docs, requires Python, and uses optional dependencies from that Python environment. It is not a standalone executable. Source remains downloadable through **Code → Download ZIP**; no PyPI publication is assumed.
+For a GitHub release tagged `v0.5.0`, attach the matching `.pyz`, source `.zip`, optional `.whl`, and `SHA256SUMS.txt`. Generated downloads are Git-ignored. The `.pyz` includes docs, requires Python, and uses optional dependencies from that Python environment. It is not a standalone executable. Source remains downloadable through **Code → Download ZIP**; no PyPI publication is assumed.
 
 [MIT license](LICENSE) · [Beginner practice notes](CRYPTO_GUIDE.md)

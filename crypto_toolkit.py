@@ -16,9 +16,10 @@ import crypto_extra
 import ctf_misc
 import crypto_rsa
 import crypto_docs
+import crypto_help
 
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 DOC_TOPICS = tuple(crypto_docs.TOPICS)
 
@@ -199,9 +200,12 @@ def integer(value):
 
 def build_parser():
     parser = argparse.ArgumentParser(
+        prog="ctf-crypto",
         description="Offline CTF crypto and misc toolkit. Optional dependencies: cryptography for AES/RSA key files, Pillow for images.",
         epilog="Start: python -m crypto_toolkit decode --from base64 --text SGVsbG8=\n"
-               "Each command has --help. Run 'docs' for the offline guide, or 'docs --list' for topics.",
+               "Command help: ctf-crypto help rsa-key\n"
+               "Option help:  ctf-crypto help rsa-key padding\n"
+               "Visual guide: ctf-crypto docs commands --open",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--version", action="version", version="CTF Crypto Toolkit " + __version__)
@@ -280,11 +284,17 @@ def build_parser():
     p.add_argument("--d", type=integer, required=True)
     p.add_argument("--c", type=integer, required=True)
     add_output(p)
+    p = commands.add_parser("help", help="Get command examples or explain one option and all its choices")
+    p.add_argument("help_command", nargs="?", choices=tuple(commands.choices))
+    p.add_argument("help_option", nargs="?", help="Option name without leading dashes")
+    crypto_help.configure(parser)
     return parser
 
 
 def run(args):
-    if args.command in crypto_extra.COMMANDS:
+    if args.command == "help":
+        crypto_help.show(build_parser(), args.help_command, args.help_option)
+    elif args.command in crypto_extra.COMMANDS:
         crypto_extra.run(args, read_input, decode, show_bytes, safe_text)
     elif args.command in ctf_misc.COMMANDS:
         ctf_misc.run(args, show_bytes)

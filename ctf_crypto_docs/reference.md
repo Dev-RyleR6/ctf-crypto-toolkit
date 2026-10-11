@@ -2,6 +2,17 @@
 
 Run `ctf-crypto COMMAND --help` for all options. Replace `ctf-crypto` with `python crypto_toolkit.py` when running from source, or `python -m crypto_toolkit` after installation.
 
+For each option's meaning, default, accepted choices, and examples:
+
+```sh
+ctf-crypto help rsa-key padding
+ctf-crypto help aes key-format
+ctf-crypto help lsb channels
+ctf-crypto docs commands --open
+```
+
+Use names without dashes after `help COMMAND`. The visual catalog groups all options into expandable command sections. Choice examples are fragments to combine with a complete command, not standalone shell commands.
+
 ## Encode and decode
 
 ```sh

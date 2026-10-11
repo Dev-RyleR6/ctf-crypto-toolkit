@@ -33,7 +33,7 @@ Repository = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit"
 Issues = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit/issues"
 
 [tool.setuptools]
-py-modules = ["crypto_toolkit", "crypto_advanced", "crypto_extra", "ctf_misc", "crypto_rsa", "crypto_docs"]
+py-modules = ["crypto_toolkit", "crypto_advanced", "crypto_extra", "ctf_misc", "crypto_rsa", "crypto_docs", "crypto_help"]
 packages = ["ctf_crypto_docs"]
 
 [tool.setuptools.package-data]
