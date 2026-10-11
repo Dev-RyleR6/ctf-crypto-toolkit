@@ -5,7 +5,6 @@ import argparse
 import base64
 from collections import Counter
 import hashlib
-from importlib import resources
 import math
 from pathlib import Path
 import re
@@ -15,11 +14,13 @@ from urllib.parse import quote_from_bytes, unquote_to_bytes
 from crypto_advanced import aes_decrypt, lfsr_bits, pack_bits, parse_state, parse_taps, read_lfsr_output
 import crypto_extra
 import ctf_misc
+import crypto_rsa
+import crypto_docs
 
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
-DOC_TOPICS = ("quickstart", "reference", "lfsr", "aes", "lfsr-aes", "classical", "misc")
+DOC_TOPICS = tuple(crypto_docs.TOPICS)
 
 FORMATS = ("hex", "base64", "base32", "binary", "url")
 LETTER_FREQUENCIES = dict(zip(
@@ -186,9 +187,7 @@ def decrypt_aes_input(args, data, key):
 
 
 def documentation(topic):
-    topics = DOC_TOPICS if topic == "all" else (topic,)
-    return "\n\n".join(resources.files("ctf_crypto_docs").joinpath(name + ".md").read_text(encoding="utf-8")
-                       for name in topics)
+    return crypto_docs.markdown(topic)
 
 
 def integer(value):
@@ -200,7 +199,7 @@ def integer(value):
 
 def build_parser():
     parser = argparse.ArgumentParser(
-        description="Offline CTF crypto and misc toolkit. Optional dependencies: cryptography for AES, Pillow for images.",
+        description="Offline CTF crypto and misc toolkit. Optional dependencies: cryptography for AES/RSA key files, Pillow for images.",
         epilog="Start: python -m crypto_toolkit decode --from base64 --text SGVsbG8=\n"
                "Each command has --help. Run 'docs' for the offline guide, or 'docs --list' for topics.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -209,11 +208,14 @@ def build_parser():
     commands = parser.add_subparsers(dest="command")
     crypto_extra.add_commands(commands, add_source, add_output)
     ctf_misc.add_commands(commands)
+    crypto_rsa.add_commands(commands, add_source, add_output)
 
-    p = commands.add_parser("docs", help="Read bundled documentation offline in your terminal")
+    p = commands.add_parser("docs", help="Read clear terminal help or open the offline visual guide")
     p.add_argument("topic", nargs="?", choices=DOC_TOPICS + ("all",), default="quickstart")
     p.add_argument("--list", action="store_true", dest="list_topics", help="List documentation topics")
-    p.add_argument("--out", help="Save Markdown documentation to a NEW UTF-8 file")
+    p.add_argument("--out", help="Save to a NEW file (.html selects HTML; otherwise defaults to Markdown)")
+    p.add_argument("--format", choices=("text", "markdown", "html"), help="Output format (default: readable terminal text)")
+    p.add_argument("--open", action="store_true", dest="open_browser", help="Open a self-contained offline HTML guide in your browser")
 
     p = commands.add_parser("lfsr", help="Generate bits or packed key material using explicit LFSR conventions")
     p.add_argument("--state", required=True, help="Bit string or JSON list of bits")
@@ -286,17 +288,10 @@ def run(args):
         crypto_extra.run(args, read_input, decode, show_bytes, safe_text)
     elif args.command in ctf_misc.COMMANDS:
         ctf_misc.run(args, show_bytes)
+    elif args.command == "rsa-key":
+        crypto_rsa.run(args, read_input, decode, show_bytes)
     elif args.command == "docs":
-        if args.list_topics:
-            print("Topics: " + ", ".join(DOC_TOPICS) + ", all")
-        else:
-            content = documentation(args.topic)
-            if args.out:
-                with Path(args.out).open("x", encoding="utf-8") as handle:
-                    handle.write(content)
-                print("Saved documentation to " + args.out)
-            else:
-                print(content)
+        crypto_docs.run(args)
     elif args.command == "lfsr":
         bits = generate_lfsr(args, parse_state(args.state), parse_taps(args.taps), args.bits)
         result = "".join(map(str, bits)) if args.format == "bits" else encode(pack_bits(bits, args.byte_order), args.format)

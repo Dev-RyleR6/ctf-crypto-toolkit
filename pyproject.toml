@@ -24,6 +24,7 @@ ctf-crypto = "crypto_toolkit:main"
 
 [project.optional-dependencies]
 aes = ["cryptography>=41"]
+rsa = ["cryptography>=41"]
 images = ["Pillow>=10"]
 all = ["cryptography>=41", "Pillow>=10"]
 
@@ -32,11 +33,11 @@ Repository = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit"
 Issues = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit/issues"
 
 [tool.setuptools]
-py-modules = ["crypto_toolkit", "crypto_advanced", "crypto_extra", "ctf_misc"]
+py-modules = ["crypto_toolkit", "crypto_advanced", "crypto_extra", "ctf_misc", "crypto_rsa", "crypto_docs"]
 packages = ["ctf_crypto_docs"]
 
 [tool.setuptools.package-data]
-ctf_crypto_docs = ["*.md"]
+ctf_crypto_docs = ["*.md", "*.html"]
 
 [tool.setuptools.dynamic]
 version = {attr = "crypto_toolkit.__version__"}

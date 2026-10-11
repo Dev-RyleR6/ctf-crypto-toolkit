@@ -2,6 +2,26 @@
 
 These commands help analyze common CTF puzzles. They run offline with the standard library. Read this guide with `ctf-crypto docs classical`.
 
+## First: rule out encoding and simple shifts
+
+```sh
+ctf-crypto decode --from base64 --text "ZmxhZ3twcmFjdGljZX0="
+```
+
+Expected: `flag{practice}`. Change `--from` to `hex`, `base32`, `binary`, or `url` to match the encoding. Use `--file encoded.txt` instead of `--text` for a file. Encodings require no key.
+
+```sh
+ctf-crypto caesar --text "synt{ebg13}" --shift 13
+```
+
+Expected: `flag{rot13}`. Omit `--shift` to try all 26 shifts.
+
+```sh
+ctf-crypto xor --text "424f464645" --input-format hex --key 2a --key-format hex
+```
+
+Expected: `hello`. For an unknown single-byte key, use `xor-crack` with the same input and omit the key options. Read [the reference](reference.md) for every encoding and XOR option.
+
 ## Vigenere with a known key
 
 ```sh

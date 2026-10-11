@@ -2,12 +2,13 @@
 
 See [README.md](README.md) for download and installation options. After installing, replace `python crypto_toolkit.py` in any example with `ctf-crypto` or `python -m crypto_toolkit`.
 
-Run with Python 3.9 or newer. Base crypto and file-analysis commands use the standard library. AES needs optional `cryptography`; image metadata and bit extraction need optional `Pillow`. Install all features with `python -m pip install ".[all]"` from the source folder. No commands make network or AI calls. On Windows, use `py` instead of `python` if needed. These examples work in PowerShell and Bash.
+Run with Python 3.9 or newer. Base crypto and file-analysis commands use the standard library. AES and RSA private-key files need optional `cryptography`; image metadata and bit extraction need optional `Pillow`. Install all features with `python -m pip install ".[all]"` from the source folder. No commands make network or AI calls. On Windows, use `py` instead of `python` if needed. These examples work in PowerShell and Bash.
 
 ## Built-in documentation and advanced commands
 
 ```sh
-python crypto_toolkit.py docs
+python crypto_toolkit.py docs --open
+python crypto_toolkit.py docs rsa
 python crypto_toolkit.py docs --list
 python crypto_toolkit.py docs lfsr
 python crypto_toolkit.py docs aes
@@ -45,6 +46,7 @@ python crypto_toolkit.py xor --help
 | A known XOR key | `xor` | Repeating key; the same operation encrypts/decrypts |
 | Substitution-cipher text | `frequency` | Counts provide clues, not automatic decryption |
 | Given RSA integers | `inverse`, then `rsa` | Textbook RSA only; no factoring or padding removal |
+| Given RSA private-key file | `rsa-key` | PEM/DER, hex/Base64 wrapper, OAEP/PKCS#1 v1.5/raw; see `docs rsa` |
 
 ## Copy-and-run examples
 

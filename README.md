@@ -1,228 +1,156 @@
 # CTF Crypto Toolkit
 
-An offline toolkit for CTF cryptography and miscellaneous file analysis. Decode data, analyze Caesar/Vigenere/XOR, check simple hashes against wordlists, derive LFSR keys, decrypt AES, and investigate files, ZIP archives, metadata, and image bit-planes. Read the bundled documentation in your terminal.
+**Find the clue. Choose a command. Recover the data.**
 
-**Requires Python 3.9 or newer.** Base crypto and file-analysis commands use the standard library. AES requires optional `cryptography`; image metadata and bit extraction require optional `Pillow`. Commands make no AI or network calls and work offline once dependencies are installed. Designed for Windows, macOS, and Linux terminals.
+An offline Python toolkit for common CTF cryptography and miscellaneous file challenges. Decode text, decrypt RSA/AES with known keys, investigate archives and images, and learn through a searchable visual guide.
 
-## Download and run — no installation
+**Python 3.9+ · Windows / macOS / Linux · No AI or network calls from tool commands**
 
-On [the GitHub repository](https://github.com/Dev-RyleR6/ctf-crypto-toolkit), select **Code → Download ZIP**, extract it, and open a terminal inside the extracted folder containing `crypto_toolkit.py`. Run:
+## Start in 30 seconds
+
+Download this repository with **Code → Download ZIP**, extract it, and open a terminal in the folder containing `crypto_toolkit.py`.
 
 ```sh
-python crypto_toolkit.py --help
-python crypto_toolkit.py docs
 python crypto_toolkit.py decode --from base64 --text "ZmxhZ3twcmFjdGljZX0="
 ```
 
-Expected result:
+You should see:
 
 ```text
 Hex: 666c61677b70726163746963657d
 UTF-8: flag{practice}
 ```
 
-On Windows, try `py` if `python` is unavailable. On macOS/Linux, use `python3` if needed. Get Python from [python.org](https://www.python.org/downloads/) if it is not installed.
-
-### Single-file download
-
-If the repository owner has attached release files, download `ctf-crypto-0.3.0.pyz` from **Releases**. Keep the file intact and run:
+Open the visual documentation:
 
 ```sh
-python ctf-crypto-0.3.0.pyz docs
-python ctf-crypto-0.3.0.pyz caesar --text "synt{ebg13}" --shift 13
+python crypto_toolkit.py docs --open
 ```
 
-The `.pyz` contains the tool, offline documentation, README, practice guide, and license. It requires Python and is not a standalone Windows executable. Base commands work without pip. For AES/images, install `cryptography`/`Pillow` in the same Python environment; third-party libraries are not bundled.
+The guide works offline and includes topic navigation, search, copy buttons, expected results, and troubleshooting. No documentation dependencies are needed.
 
-## Install the `ctf-crypto` command
+## Install the command for use anywhere
 
-From the extracted source folder, create a virtual environment:
+From this source folder:
 
 ```sh
-python -m venv .venv
+python -m pip install --user pipx
+python -m pipx ensurepath
+python -m pipx install ".[all]"
 ```
 
-Activate it with the command for your terminal:
-
-| Terminal | Command |
-|---|---|
-| Windows PowerShell | `.\.venv\Scripts\Activate.ps1` |
-| Windows Command Prompt | `.venv\Scripts\activate.bat` |
-| macOS/Linux shell | `source .venv/bin/activate` |
-
-Then install and run:
+Restart your terminal after `ensurepath`, then run:
 
 ```sh
-python -m pip install .
 ctf-crypto --version
-ctf-crypto decode --from hex --text "666c61677b6865787d"
+ctf-crypto docs --open
 ```
 
-For **all features**, install the optional extras instead (or run this later to add them):
+Already using pipx? After pulling/downloading an update, run `python -m pipx install --force ".[all]"` from the updated source folder. See the [pipx installation guide](https://pipx.pypa.io/stable/how-to/install-pipx.html) if pipx itself needs setup.
+
+Prefer an existing virtual environment? Activate it and run `python -m pip install ".[all]"`. To run directly from source with AES/RSA/image support, install `python -m pip install cryptography Pillow` in the same Python environment.
+
+| Install | Features |
+|---|---|
+| `python -m pip install .` | Base encodings, classical ciphers, numeric RSA, LFSR, file/ZIP tools, docs |
+| `python -m pip install ".[rsa]"` | Base + RSA key files and AES (same dependency) |
+| `python -m pip install ".[images]"` | Base + image metadata and LSB |
+| `python -m pip install ".[all]"` | Everything above |
+
+`.[aes]` remains available. Installation may need internet; commands work offline afterward. If `ctf-crypto` is not found, use `python -m crypto_toolkit` with the Python environment where you installed it. Windows can also use `py`; macOS/Linux may use `python3`.
+
+## What do you have?
+
+| Challenge clue | Tools | Step-by-step guide |
+|---|---|---|
+| A private key and ciphertext | `rsa-key` (PEM, DER, hex/Base64 wrapped keys) | [RSA private keys](ctf_crypto_docs/rsa.md) |
+| Numbers `n`, `d`, `c` | `rsa`, `inverse` | [RSA private keys](ctf_crypto_docs/rsa.md) |
+| AES key / IV / ciphertext | `aes` (ECB, CBC) | [AES](ctf_crypto_docs/aes.md) |
+| LFSR state and taps | `lfsr`, `lfsr-aes` | [LFSR + AES](ctf_crypto_docs/lfsr-aes.md) |
+| Encoded or scrambled text | `encode`, `decode`, `caesar`, `vigenere`, `frequency` | [Classical crypto](ctf_crypto_docs/classical.md) |
+| Unknown XOR or Vigenere key | `xor-crack`, `xor-repeat-crack`, `vigenere-crack` | [Classical crypto](ctf_crypto_docs/classical.md) |
+| Known XOR key | `xor` | [Command reference](ctf_crypto_docs/reference.md) |
+| Digest or simple hash + wordlist | `hash`, `hash-check` | [Classical crypto](ctf_crypto_docs/classical.md) |
+| Mystery file | `file-info`, `strings`, `hexdump`, `carve` | [File analysis](ctf_crypto_docs/misc.md) |
+| ZIP archive | `zip-info`, `zip-read` | [File analysis](ctf_crypto_docs/misc.md) |
+| Image with hidden data | `image-info`, `lsb` | [File analysis](ctf_crypto_docs/misc.md) |
+
+Every command supports `--help`. Read the [full command reference](ctf_crypto_docs/reference.md) for examples.
+
+## RSA private-key example
+
+For a PEM key and binary ciphertext encrypted with OAEP/SHA-256:
 
 ```sh
-python -m pip install ".[all]"
-ctf-crypto docs misc
+ctf-crypto rsa-key --key-file private.pem --file encrypted.bin --padding oaep --oaep-hash sha256
 ```
 
-Use `".[aes]"` for only AES or `".[images]"` for only image support. For source/portable use, `python -m pip install cryptography Pillow` installs both. Use the same Python environment to install and run. To upgrade, pull/download the updated source and run `python -m pip install ".[all]"` again.
-
-For pipx users, install from this source folder with `python -m pipx install ".[all]"`. To update an existing pipx copy from this folder, use `python -m pipx install --force ".[all]"`. Run `python -m pipx ensurepath` and restart the terminal if the command is not on PATH. See the [pipx setup guide](https://pipx.pypa.io/stable/how-to/install-pipx.html).
-
-If PowerShell blocks activation, run `.\.venv\Scripts\python.exe -m pip install .` and `.\.venv\Scripts\ctf-crypto.exe --help` instead; no execution-policy change is needed.
-
-Installing from source may download setuptools and optional dependencies. AES/images work offline after their dependencies are installed. For completely offline base use, run the source script or `.pyz`, or install a provided wheel without downloads:
+For a key stored as hex (starting with `2d2d2d2d2d424547494e...`), add `--key-encoding hex`:
 
 ```sh
-python -m pip install --no-index --no-deps ctf_crypto_toolkit-0.3.0-py3-none-any.whl
+ctf-crypto rsa-key --key-file private.hex --key-encoding hex --file encrypted.bin --padding oaep --oaep-hash sha256
 ```
 
-After installation, `python -m crypto_toolkit` is an alternative to `ctf-crypto`. Use the Python interpreter from the environment where you installed it. Activate that environment in each new terminal, or run its executable by full path.
+These are templates: supply your own files and match the challenge's padding. Supported choices are `oaep`, `pkcs1v15`, and unpadded `raw`. Encrypted key file? Add `--ask-password`. Ciphertext stored as hex/Base64? Add `--input-format hex` or `--input-format base64`. [Read the RSA recipe](ctf_crypto_docs/rsa.md).
 
-## Documentation command
+## Documentation, without the clutter
+
+| Want to... | Run |
+|---|---|
+| Open the visual guide | `ctf-crypto docs --open` |
+| Open directly to RSA | `ctf-crypto docs rsa --open` |
+| Read one topic in the terminal | `ctf-crypto docs rsa` |
+| See all topics | `ctf-crypto docs --list` |
+| Save a complete offline HTML guide | `ctf-crypto docs --out guide.html` |
+| Export all topics as Markdown | `ctf-crypto docs all --out guide.md` |
+
+HTML includes all topics; the selected topic opens first. Text/Markdown exports include the selected topic or `all`. Exports and decrypted output files must be new: existing files are never overwritten.
+
+## Practice with included challenges
+
+LFSR + AES (requires cryptography):
 
 ```sh
-ctf-crypto docs
-ctf-crypto docs --list
-ctf-crypto docs lfsr
-ctf-crypto docs aes
-ctf-crypto docs lfsr-aes
-ctf-crypto docs classical
-ctf-crypto docs misc
-ctf-crypto docs all --out toolkit-guide.md
+ctf-crypto lfsr-aes --file examples/lfsr_aes_demo.txt --mode ecb
 ```
 
-Documentation is bundled with the source, wheel, and portable download. It prints Markdown in the terminal without a browser or network connection. `--out` exports to a new UTF-8 file. Each command also supports `--help`.
+Expected plaintext: `flag{lfsr_aes_demo}`. The [LFSR guide](ctf_crypto_docs/lfsr-aes.md) explains the state/tap conventions.
 
-Read on GitHub: [Quickstart](ctf_crypto_docs/quickstart.md) · [Command reference](ctf_crypto_docs/reference.md) · [LFSR](ctf_crypto_docs/lfsr.md) · [AES](ctf_crypto_docs/aes.md) · [LFSR + AES](ctf_crypto_docs/lfsr-aes.md) · [Classical crypto](ctf_crypto_docs/classical.md) · [Misc/file analysis](ctf_crypto_docs/misc.md).
-
-## Misc practice workflow
-
-Generate a NEW directory of synthetic examples, then investigate it:
+File and image practice (LSB requires Pillow):
 
 ```sh
 python examples/create_misc_demo.py --out-dir practice
-ctf-crypto file-info --file practice/mystery.bin --scan
 ctf-crypto strings --file practice/mystery.bin --encoding all
 ctf-crypto zip-info --file practice/notes.zip
-ctf-crypto image-info --file practice/picture.png
 ctf-crypto lsb --file practice/picture.png --bytes 16
 ```
 
-The final command recovers `flag{pixel_bits}`. The generator supplies metadata, strings, ZIP comments/members, a wordlist, and exact offsets for carving exercises. It refuses an existing directory. See `ctf-crypto docs misc` for the full walkthrough.
+The last command recovers `flag{pixel_bits}`. The generator requires a new output directory. [Follow the complete walkthrough](ctf_crypto_docs/misc.md).
 
-## LFSR + AES quick example
+## Know the limits
 
-The bundled synthetic practice file can be solved with:
+- RSA key-file decryption supports one RSA block with known padding; it does not decrypt every private-key format, factor arbitrary keys, or handle PGP/SSH containers. Numeric `rsa` performs textbook RSA without removing padding.
+- AES supports ECB/CBC with PKCS#7 or no padding. CTR/GCM, authentication tags, and password-derived keys are not supported. LFSR conventions must match the challenge; states/taps are not inferred.
+- Cipher cracking ranks English-looking guesses. A high score or valid padding does not prove the result is correct. Hash checks use your wordlist and simple unsalted digests.
+- File signatures and entropy are clues. Image extraction supports RGB/RGBA PNG/BMP with explicit channels, bit-plane, offset, and length. This is not a complete steganography, PCAP, or forensics suite.
+- Most file-analysis inputs are capped at 64 MiB and image decoding at 16 million pixels. These are local CTF helpers, not a production encryption library.
 
-```sh
-python crypto_toolkit.py lfsr-aes --file examples/lfsr_aes_demo.txt --mode ecb
-```
-
-Expected plaintext: `flag{lfsr_aes_demo}`. To use your own three-field challenge file:
-
-```sh
-ctf-crypto lfsr-aes --file output.txt --mode ecb
-```
-
-The default LFSR shifts left, emits the first bit before shifting, uses zero-based taps counted from the left, and packs 128 bits most-significant-bit first. Mode is always explicit; padding defaults to PKCS#7. These conventions must match the challenge. The [combined workflow guide](ctf_crypto_docs/lfsr-aes.md) explains overrides, CBC IVs, file format, and error messages.
-
-## Commands
-
-| Command | Purpose | Example arguments |
-|---|---|---|
-| `encode` | Hex, Base64, Base32, binary, URL encoding | `--to base64 --text "hello"` |
-| `decode` | Convert an encoded value to bytes | `--from hex --text "6869"` |
-| `caesar` | Try all shifts, or a specific shift | `--text "khoor"` |
-| `xor` | Apply a known repeating key | `--text "hello" --key 2a --key-format hex` |
-| `xor-crack` | Rank single-byte XOR candidates | `--text "424f464645" --input-format hex` |
-| `frequency` | Count ASCII letters | `--text "a secret message"` |
-| `hash` | MD5, SHA-1, SHA-256, SHA-512 digest | `--text "abc" --algorithm sha256` |
-| `inverse` | Modular inverse | `17 3120` |
-| `rsa` | Textbook RSA using known private exponent | `--n 3233 --d 2753 --c 2790` |
-| `lfsr` | Generate bits or packed key material | `--state 1001 --taps 0,3 --bits 8` |
-| `aes` | AES-ECB/CBC decryption with a known key | `--mode ecb --key HEX --file ciphertext.bin` |
-| `lfsr-aes` | Read state/taps/ciphertext and derive an AES key | `--file output.txt --mode ecb` |
-| `docs` | Read or export the offline guide | `lfsr-aes` or `all --out guide.md` |
-| `vigenere` | Encrypt/decrypt with a known key | `--text LXFOPVEFRNHR --key LEMON` |
-| `vigenere-crack` | Guess English Vigenere keys | `--file cipher.txt --key-size 5` |
-| `xor-repeat-crack` | Guess repeating-key XOR | `--file cipher.bin --min-key 2 --max-key 40` |
-| `hash-check` | Bounded unsalted-digest wordlist check | `--digest HEX --wordlist words.txt` |
-| `file-info` | Size, hash, entropy, signature candidates | `--file mystery.bin --scan` |
-| `strings` | ASCII/ASCII-range UTF-16 with offsets | `--file mystery.bin --encoding all` |
-| `hexdump` | Inspect a byte range | `--file mystery.bin --length 64` |
-| `carve` | Copy an exact range to a new file | `--file mystery.bin --offset 32 --length 128 --out slice.bin` |
-| `zip-info` | ZIP entries and comments | `--file archive.zip` |
-| `zip-read` | Copy one ZIP member to your chosen output | `--file archive.zip --member note.txt --out note.txt` |
-| `image-info` | Image metadata and EXIF | `--file picture.png` |
-| `lsb` | RGB/RGBA PNG/BMP bit-plane extraction | `--file picture.png --bytes 16` |
-
-Prefix examples with `ctf-crypto` (installed) or `python crypto_toolkit.py` (source). Every command accepts `--help`.
-
-### File input and output
-
-```sh
-ctf-crypto decode --from base64 --file encoded.txt --out decoded.bin
-ctf-crypto xor --file encrypted.bin --key "ICE" --out decrypted.bin
-ctf-crypto hash --file challenge.bin --algorithm sha256
-```
-
-Output files must not already exist. The tool refuses to overwrite files. See [CRYPTO_GUIDE.md](CRYPTO_GUIDE.md) for input formats, worked examples, and five short practice exercises.
-
-### Limits
-
-- XOR/Vigenere scores rank English-looking guesses, not proven solutions. Short or non-English messages can produce wrong guesses.
-- RSA requires a known private exponent; it does not factor arbitrary keys or remove RSA padding.
-- `hash-check` tests supplied wordlist entries against a simple unsalted digest; it does not support salted/password-hash records or generate candidates.
-- LFSR uses explicit Fibonacci conventions and direct bit packing; it does not infer unknown states/taps or apply a hash-based key derivation function.
-- AES currently supports ECB/CBC decryption, with PKCS#7 or no padding. It does not support CTR/GCM, authentication tags, or password-based key derivation. Valid padding alone does not prove that a candidate key is correct.
-- Intended for modest CTF inputs loaded into memory. This is not a production encryption library.
-- Signatures and entropy are clues, not proof of a file type or encryption. Carving requires explicit boundaries. Most file commands accept up to 64 MiB; image decoding is capped at 16 million pixels.
-- Image bit extraction requires selected channels, bit-plane, offset, and length. It does not support every steganography format. This is not a PCAP, disk/memory-forensics, or reverse-engineering suite.
-
-## Develop and test
+## Develop and build downloads
 
 ```sh
 python -m unittest discover -s tests -v
-```
-
-The test runner uses the standard library. Install `".[all]"` to run AES and image tests; missing dependencies cause those groups to skip. Coverage includes cipher vectors, heuristic recovery examples, padding, wordlist boundaries, file offsets, ZIP limits, image extraction, file preservation, and source/portable execution outside the source directory.
-
-## Build downloads
-
-```sh
 python scripts/build_release.py
 ```
 
-This uses the standard library to create a source ZIP, a portable `.pyz`, and SHA-256 checksums in `dist/`. It packages only an explicit list of project files, excluding virtual environments, caches, challenge files, and Git metadata. Rebuilding replaces generated release files for the same version.
+Install `.[all]` to exercise optional AES/RSA/image tests; unavailable dependencies cause their tests to skip. The release builder creates an allowlisted source ZIP, a portable Python `.pyz`, and SHA-256 checksums in `dist/`.
 
-Optional: build an installable wheel (this command may download build tools):
+Optional installable wheel:
 
 ```sh
 python -m pip wheel --no-deps --wheel-dir dist .
 python scripts/build_release.py
 ```
 
-The second command refreshes checksums to include the wheel, if present. Change `__version__` in `crypto_toolkit.py` when releasing a new version; package metadata and the release builder read it automatically.
+For a GitHub release tagged `v0.4.0`, attach the matching `.pyz`, source `.zip`, optional `.whl`, and `SHA256SUMS.txt`. Generated downloads are Git-ignored. The `.pyz` includes docs, requires Python, and uses optional dependencies from that Python environment. It is not a standalone executable. Source remains downloadable through **Code → Download ZIP**; no PyPI publication is assumed.
 
-## Push this folder to GitHub
-
-For the initial upload to an empty repository, run these commands **inside this folder**. If you have already cloned or connected the repository, use your normal commit and push workflow instead:
-
-```sh
-git init -b main
-git add .
-git commit -m "Initial CTF Crypto Toolkit release"
-git remote add origin https://github.com/Dev-RyleR6/ctf-crypto-toolkit.git
-git push -u origin main
-```
-
-The source is downloadable through **Code → Download ZIP** after pushing. To offer the prepared downloads, create a GitHub release tagged `v0.3.0` and attach the matching `.pyz`, source `.zip`, optional `.whl`, and `SHA256SUMS.txt` from `dist/`. Generated downloads are Git-ignored; attach them to Releases. Older artifacts may remain in `dist/`; choose only files matching the release version.
-
-No PyPI publication is needed. The installation instructions above use your downloaded source or wheel; they do not assume that this package name exists on PyPI.
-
-## License
-
-[MIT](LICENSE).
-
-Packaging reference: [setuptools pyproject configuration](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html).
+[MIT license](LICENSE) · [Beginner practice notes](CRYPTO_GUIDE.md)
