@@ -36,6 +36,16 @@ class DistributionTests(unittest.TestCase):
                                         capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn(release.version(), result.stdout)
+                result = subprocess.run([sys.executable, "-S", str(executable), "docs", "all"], cwd=folder,
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("# LFSR + AES challenge workflow", result.stdout)
+                if importlib.util.find_spec("cryptography") is not None:
+                    fixture = destination / "extracted" / prefix / "examples" / "lfsr_aes_demo.txt"
+                    result = subprocess.run([sys.executable, str(executable), "lfsr-aes", "--file", str(fixture),
+                                             "--mode", "ecb"], cwd=folder, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("flag{lfsr_aes_demo}", result.stdout)
             result = subprocess.run([sys.executable, str(portable), "decode", "--from", "hex",
                                      "--text", "not-hex"], cwd=folder, capture_output=True, text=True)
             self.assertEqual(result.returncode, 1)

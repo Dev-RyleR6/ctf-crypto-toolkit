@@ -2,7 +2,28 @@
 
 See [README.md](README.md) for download and installation options. After installing, replace `python crypto_toolkit.py` in any example with `ctf-crypto` or `python -m crypto_toolkit`.
 
-Run with Python 3.9 or newer. There are no packages to install, network calls, or AI features. On Windows, use `py` instead of `python` if needed. These examples work in PowerShell and Bash.
+Run with Python 3.9 or newer. The commands below use only the standard library. AES commands additionally require the optional `cryptography` package. No commands make network or AI calls. On Windows, use `py` instead of `python` if needed. These examples work in PowerShell and Bash.
+
+## Built-in documentation and advanced commands
+
+```sh
+python crypto_toolkit.py docs
+python crypto_toolkit.py docs --list
+python crypto_toolkit.py docs lfsr
+python crypto_toolkit.py docs aes
+python crypto_toolkit.py docs lfsr-aes
+python crypto_toolkit.py docs all --out toolkit-guide.md
+```
+
+The same documentation is bundled in every source, wheel, and portable download. See the [LFSR guide](ctf_crypto_docs/lfsr.md), [AES guide](ctf_crypto_docs/aes.md), and [combined challenge workflow](ctf_crypto_docs/lfsr-aes.md).
+
+From your activated environment in the source folder, install AES support with `python -m pip install ".[aes]"`. Then try the synthetic practice fixture:
+
+```sh
+python crypto_toolkit.py lfsr-aes --file examples/lfsr_aes_demo.txt --mode ecb
+```
+
+Expected plaintext: `flag{lfsr_aes_demo}`. The combined command directly packs LFSR bits into a key and requires the AES mode explicitly. Its documented defaults are a left shift, first bit output before shifting, zero-based taps counted from the left, and MSB-first packing. These must match the challenge implementation.
 
 ```sh
 python crypto_toolkit.py

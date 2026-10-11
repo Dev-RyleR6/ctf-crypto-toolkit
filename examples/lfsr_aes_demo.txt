@@ -1,0 +1,6 @@
+LFSR Initial State:
+[1, 0, 0, 1, 1, 0, 1, 0]
+LFSR Taps:
+[7, 5, 4, 3]
+Encrypted Flag:
+6704575b664e6e3374e569b5a49e939b71f3cd6f6956b7ac9ece0f9c564c6d41

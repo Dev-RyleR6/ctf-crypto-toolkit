@@ -1,8 +1,8 @@
 # CTF Crypto Toolkit
 
-An offline command-line toolkit for common Capture-the-Flag cryptography tasks. Encode and decode data, try Caesar shifts, apply XOR keys, inspect English-ranked XOR candidates, count letters, calculate hashes, and work through textbook RSA exercises.
+An offline command-line toolkit for common Capture-the-Flag cryptography tasks. Encode and decode data, try Caesar shifts, analyze XOR, calculate hashes, work through textbook RSA, generate LFSR keys, and decrypt AES-ECB/CBC. Read the bundled documentation directly in your terminal.
 
-**Requires Python 3.9 or newer. No runtime packages, AI features, or network access required.** Designed for Windows, macOS, and Linux terminals. This is a command-line program; open a terminal to run it.
+**Requires Python 3.9 or newer.** Base commands, LFSR generation, and documentation use only the standard library. AES commands require the optional `cryptography` package. Commands make no AI or network calls and work offline once dependencies are installed. Designed for Windows, macOS, and Linux terminals.
 
 ## Download and run — no installation
 
@@ -10,6 +10,7 @@ On [the GitHub repository](https://github.com/Dev-RyleR6/ctf-crypto-toolkit), se
 
 ```sh
 python crypto_toolkit.py --help
+python crypto_toolkit.py docs
 python crypto_toolkit.py decode --from base64 --text "ZmxhZ3twcmFjdGljZX0="
 ```
 
@@ -24,14 +25,14 @@ On Windows, try `py` if `python` is unavailable. On macOS/Linux, use `python3` i
 
 ### Single-file download
 
-If the repository owner has attached release files, download `ctf-crypto-0.1.0.pyz` from **Releases**. Keep the file intact and run:
+If the repository owner has attached release files, download `ctf-crypto-0.2.0.pyz` from **Releases**. Keep the file intact and run:
 
 ```sh
-python ctf-crypto-0.1.0.pyz --help
-python ctf-crypto-0.1.0.pyz caesar --text "synt{ebg13}" --shift 13
+python ctf-crypto-0.2.0.pyz docs
+python ctf-crypto-0.2.0.pyz caesar --text "synt{ebg13}" --shift 13
 ```
 
-The `.pyz` contains the tool, README, practice guide, and license. It still requires Python; it is not a standalone Windows executable. Once downloaded, it works offline without pip.
+The `.pyz` contains the tool, offline documentation, README, practice guide, and license. It requires Python and is not a standalone Windows executable. Base commands work without pip. For AES, first install `cryptography` in the same Python environment; it is not bundled in the portable file.
 
 ## Install the `ctf-crypto` command
 
@@ -57,15 +58,55 @@ ctf-crypto --version
 ctf-crypto decode --from hex --text "666c61677b6865787d"
 ```
 
-If PowerShell blocks activation, run `.\.venv\Scripts\python.exe -m pip install .` and `.\.venv\Scripts\ctf-crypto.exe --help` instead; no execution-policy change is needed.
-
-Installing from source may download the setuptools build tool. For completely offline use, run the source script or `.pyz` directly. If a wheel is provided in Releases, install it without downloads inside your environment:
+For **AES support**, install the optional extra instead (or run this later to add it):
 
 ```sh
-python -m pip install --no-index --no-deps ctf_crypto_toolkit-0.1.0-py3-none-any.whl
+python -m pip install ".[aes]"
+ctf-crypto docs lfsr-aes
+```
+
+When running directly from source or a `.pyz`, `python -m pip install cryptography` installs the AES dependency. Use the same Python environment to install and run. To upgrade an installed older toolkit, pull/download the updated source and run `python -m pip install ".[aes]"` again.
+
+If PowerShell blocks activation, run `.\.venv\Scripts\python.exe -m pip install .` and `.\.venv\Scripts\ctf-crypto.exe --help` instead; no execution-policy change is needed.
+
+Installing from source may download setuptools, and the AES extra may download `cryptography` and its dependencies. For completely offline base use, run the source script or `.pyz` directly. AES works offline after its dependency is installed. If a wheel is provided in Releases, install the base toolkit without downloads inside your environment:
+
+```sh
+python -m pip install --no-index --no-deps ctf_crypto_toolkit-0.2.0-py3-none-any.whl
 ```
 
 After installation, `python -m crypto_toolkit` is an alternative to `ctf-crypto`. Use the Python interpreter from the environment where you installed it. Activate that environment in each new terminal, or run its executable by full path.
+
+## Documentation command
+
+```sh
+ctf-crypto docs
+ctf-crypto docs --list
+ctf-crypto docs lfsr
+ctf-crypto docs aes
+ctf-crypto docs lfsr-aes
+ctf-crypto docs all --out toolkit-guide.md
+```
+
+Documentation is bundled with the source, wheel, and portable download. It prints Markdown in the terminal without a browser or network connection. `--out` exports to a new UTF-8 file. Each command also supports `--help`.
+
+Read on GitHub: [Quickstart](ctf_crypto_docs/quickstart.md) · [Command reference](ctf_crypto_docs/reference.md) · [LFSR](ctf_crypto_docs/lfsr.md) · [AES](ctf_crypto_docs/aes.md) · [LFSR + AES](ctf_crypto_docs/lfsr-aes.md).
+
+## LFSR + AES quick example
+
+The bundled synthetic practice file can be solved with:
+
+```sh
+python crypto_toolkit.py lfsr-aes --file examples/lfsr_aes_demo.txt --mode ecb
+```
+
+Expected plaintext: `flag{lfsr_aes_demo}`. To use your own three-field challenge file:
+
+```sh
+ctf-crypto lfsr-aes --file output.txt --mode ecb
+```
+
+The default LFSR shifts left, emits the first bit before shifting, uses zero-based taps counted from the left, and packs 128 bits most-significant-bit first. Mode is always explicit; padding defaults to PKCS#7. These conventions must match the challenge. The [combined workflow guide](ctf_crypto_docs/lfsr-aes.md) explains overrides, CBC IVs, file format, and error messages.
 
 ## Commands
 
@@ -80,6 +121,10 @@ After installation, `python -m crypto_toolkit` is an alternative to `ctf-crypto`
 | `hash` | MD5, SHA-1, SHA-256, SHA-512 digest | `--text "abc" --algorithm sha256` |
 | `inverse` | Modular inverse | `17 3120` |
 | `rsa` | Textbook RSA using known private exponent | `--n 3233 --d 2753 --c 2790` |
+| `lfsr` | Generate bits or packed key material | `--state 1001 --taps 0,3 --bits 8` |
+| `aes` | AES-ECB/CBC decryption with a known key | `--mode ecb --key HEX --file ciphertext.bin` |
+| `lfsr-aes` | Read state/taps/ciphertext and derive an AES key | `--file output.txt --mode ecb` |
+| `docs` | Read or export the offline guide | `lfsr-aes` or `all --out guide.md` |
 
 Prefix examples with `ctf-crypto` (installed) or `python crypto_toolkit.py` (source). Every command accepts `--help`.
 
@@ -98,6 +143,8 @@ Output files must not already exist. The tool refuses to overwrite files. See [C
 - XOR scores rank English-looking guesses, not proven solutions. Short messages can rank poorly.
 - RSA requires a known private exponent; it does not factor arbitrary keys or remove RSA padding.
 - Hashing computes digests; it does not reverse or crack them.
+- LFSR uses explicit Fibonacci conventions and direct bit packing; it does not infer unknown states/taps or apply a hash-based key derivation function.
+- AES currently supports ECB/CBC decryption, with PKCS#7 or no padding. It does not support CTR/GCM, authentication tags, or password-based key derivation. Valid padding alone does not prove that a candidate key is correct.
 - Intended for modest CTF inputs loaded into memory. This is not a production encryption library.
 
 ## Develop and test
@@ -106,7 +153,7 @@ Output files must not already exist. The tool refuses to overwrite files. See [C
 python -m unittest discover -s tests -v
 ```
 
-Tests use only the standard library and cover known cipher vectors, error handling, file preservation, release contents, and execution of the portable download outside the source directory.
+The test runner uses the standard library. Install the AES extra to run AES tests; otherwise those tests are skipped. Coverage includes known AES-128/192/256 vectors, CBC IV handling, LFSR conventions, padding errors, file preservation, optional-dependency behavior, and documentation/command execution outside the source directory in source and portable downloads.
 
 ## Build downloads
 
@@ -137,7 +184,7 @@ git remote add origin https://github.com/Dev-RyleR6/ctf-crypto-toolkit.git
 git push -u origin main
 ```
 
-The source is downloadable through **Code → Download ZIP** after pushing. To offer the prepared downloads, create a GitHub release tagged `v0.1.0` and attach the `.pyz`, source `.zip`, optional `.whl`, and `SHA256SUMS.txt` from `dist/`. Generated downloads are intentionally Git-ignored; attach them to Releases instead of committing them.
+The source is downloadable through **Code → Download ZIP** after pushing. To offer the prepared downloads, create a GitHub release tagged `v0.2.0` and attach the matching `.pyz`, source `.zip`, optional `.whl`, and `SHA256SUMS.txt` from `dist/`. Generated downloads are intentionally Git-ignored; attach them to Releases instead of committing them. Older-version artifacts may remain in `dist/`; choose only the files matching the release version.
 
 No PyPI publication is needed. The installation instructions above use your downloaded source or wheel; they do not assume that this package name exists on PyPI.
 

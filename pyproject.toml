@@ -22,12 +22,19 @@ classifiers = [
 [project.scripts]
 ctf-crypto = "crypto_toolkit:main"
 
+[project.optional-dependencies]
+aes = ["cryptography>=41"]
+
 [project.urls]
 Repository = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit"
 Issues = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit/issues"
 
 [tool.setuptools]
-py-modules = ["crypto_toolkit"]
+py-modules = ["crypto_toolkit", "crypto_advanced"]
+packages = ["ctf_crypto_docs"]
+
+[tool.setuptools.package-data]
+ctf_crypto_docs = ["*.md"]
 
 [tool.setuptools.dynamic]
 version = {attr = "crypto_toolkit.__version__"}

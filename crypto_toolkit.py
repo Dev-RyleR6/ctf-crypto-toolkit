@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
-"""Offline CTF helpers. Python 3.9+, standard library only."""
+"""Offline CTF helpers. Python 3.9+; optional cryptography dependency for AES."""
 
 import argparse
 import base64
 from collections import Counter
 import hashlib
+from importlib import resources
 import math
 from pathlib import Path
 import re
 import sys
 from urllib.parse import quote_from_bytes, unquote_to_bytes
 
+from crypto_advanced import aes_decrypt, lfsr_bits, pack_bits, parse_state, parse_taps, read_lfsr_output
 
-__version__ = "0.1.0"
+
+__version__ = "0.2.0"
+
+DOC_TOPICS = ("quickstart", "reference", "lfsr", "aes", "lfsr-aes")
 
 FORMATS = ("hex", "base64", "base32", "binary", "url")
 LETTER_FREQUENCIES = dict(zip(
@@ -148,6 +153,42 @@ def add_output(parser):
     parser.add_argument("--out", help="Write result bytes to a NEW file instead of displaying them")
 
 
+def add_lfsr_options(parser):
+    parser.add_argument("--shift", choices=("left", "right"), default="left", help="Register shift direction (default: left)")
+    parser.add_argument("--output-bit", choices=("first", "last", "feedback"), default="first",
+                        help="Bit emitted before shifting (default: first)")
+    parser.add_argument("--tap-base", choices=(0, 1), type=int, default=0, help="Tap numbering base (default: 0)")
+    parser.add_argument("--tap-origin", choices=("left", "right"), default="left", help="End used to count tap indices (default: left)")
+    parser.add_argument("--byte-order", choices=("msb", "lsb"), default="msb",
+                        help="Bit order within each output byte; not byte reversal (default: msb)")
+    parser.add_argument("--skip", type=int, default=0, help="Discard this many initial output bits (default: 0)")
+
+
+def add_aes_options(parser):
+    parser.add_argument("--mode", required=True, choices=("ecb", "cbc"), help="AES mode; must be specified")
+    iv = parser.add_mutually_exclusive_group()
+    iv.add_argument("--iv", help="CBC IV: exactly 16 bytes encoded as hex")
+    iv.add_argument("--iv-prefix", action="store_true", help="Read CBC IV from the first 16 input bytes")
+    parser.add_argument("--padding", choices=("pkcs7", "none"), default="pkcs7", help="Padding to remove (default: pkcs7)")
+    add_output(parser)
+
+
+def generate_lfsr(args, state, taps, count):
+    return lfsr_bits(state, taps, count, shift=args.shift, output_bit=args.output_bit,
+                     tap_base=args.tap_base, tap_origin=args.tap_origin, skip=args.skip)
+
+
+def decrypt_aes_input(args, data, key):
+    return aes_decrypt(data, key, mode=args.mode, iv=decode(args.iv, "hex") if args.iv is not None else None,
+                       iv_prefix=args.iv_prefix, padding=args.padding)
+
+
+def documentation(topic):
+    topics = DOC_TOPICS if topic == "all" else (topic,)
+    return "\n\n".join(resources.files("ctf_crypto_docs").joinpath(name + ".md").read_text(encoding="utf-8")
+                       for name in topics)
+
+
 def integer(value):
     try:
         return int(value, 16) if value.lower().startswith("0x") else int(value, 10)
@@ -157,13 +198,39 @@ def integer(value):
 
 def build_parser():
     parser = argparse.ArgumentParser(
-        description="Offline CTF cryptography toolkit; no AI, network calls, or dependencies.",
+        description="Offline CTF cryptography toolkit. AES uses optional cryptography; other commands use the standard library.",
         epilog="Start: python -m crypto_toolkit decode --from base64 --text SGVsbG8=\n"
-               "Each command has --help. See CRYPTO_GUIDE.md for practice and examples.",
+               "Each command has --help. Run 'docs' for the offline guide, or 'docs --list' for topics.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--version", action="version", version="CTF Crypto Toolkit " + __version__)
     commands = parser.add_subparsers(dest="command")
+
+    p = commands.add_parser("docs", help="Read bundled documentation offline in your terminal")
+    p.add_argument("topic", nargs="?", choices=DOC_TOPICS + ("all",), default="quickstart")
+    p.add_argument("--list", action="store_true", dest="list_topics", help="List documentation topics")
+    p.add_argument("--out", help="Save Markdown documentation to a NEW UTF-8 file")
+
+    p = commands.add_parser("lfsr", help="Generate bits or packed key material using explicit LFSR conventions")
+    p.add_argument("--state", required=True, help="Bit string or JSON list of bits")
+    p.add_argument("--taps", required=True, help="Comma-separated tap indices or JSON list")
+    p.add_argument("--bits", type=int, default=128, help="Number of output bits (default: 128)")
+    p.add_argument("--format", choices=("hex", "base64", "bits"), default="hex")
+    p.add_argument("--out", help="Save the formatted ASCII output to a NEW file")
+    add_lfsr_options(p)
+
+    p = commands.add_parser("aes", help="Decrypt AES-ECB or AES-CBC with a known key (optional dependency)")
+    add_source(p)
+    p.add_argument("--input-format", choices=("raw", "hex", "base64"), default="raw")
+    p.add_argument("--key", required=True, help="AES key, hexadecimal by default")
+    p.add_argument("--key-format", choices=("hex", "base64", "text"), default="hex")
+    add_aes_options(p)
+
+    p = commands.add_parser("lfsr-aes", help="Read a challenge output file, derive a packed LFSR key, and decrypt AES")
+    p.add_argument("--file", required=True, help="Three-field output.txt format; see docs lfsr-aes")
+    p.add_argument("--key-bits", type=int, choices=(128, 192, 256), default=128)
+    add_lfsr_options(p)
+    add_aes_options(p)
 
     p = commands.add_parser("encode", help="Encode raw bytes as hex, Base64, Base32, binary, or URL text")
     add_source(p)
@@ -211,7 +278,36 @@ def build_parser():
 
 
 def run(args):
-    if args.command == "encode":
+    if args.command == "docs":
+        if args.list_topics:
+            print("Topics: " + ", ".join(DOC_TOPICS) + ", all")
+        else:
+            content = documentation(args.topic)
+            if args.out:
+                with Path(args.out).open("x", encoding="utf-8") as handle:
+                    handle.write(content)
+                print("Saved documentation to " + args.out)
+            else:
+                print(content)
+    elif args.command == "lfsr":
+        bits = generate_lfsr(args, parse_state(args.state), parse_taps(args.taps), args.bits)
+        result = "".join(map(str, bits)) if args.format == "bits" else encode(pack_bits(bits, args.byte_order), args.format)
+        if args.out:
+            show_bytes(result.encode("ascii"), args.out)
+        else:
+            print(result)
+    elif args.command == "aes":
+        source = read_input(args)
+        data = source if args.input_format == "raw" else decode(source.decode("utf-8-sig"), args.input_format)
+        key = decode(args.key, args.key_format)
+        show_bytes(decrypt_aes_input(args, data, key), args.out)
+    elif args.command == "lfsr-aes":
+        state, taps, data = read_lfsr_output(args.file)
+        key = pack_bits(generate_lfsr(args, state, taps, args.key_bits), args.byte_order)
+        plaintext = decrypt_aes_input(args, data, key)
+        print("Derived key (hex): " + key.hex())
+        show_bytes(plaintext, args.out)
+    elif args.command == "encode":
         result = encode(read_input(args), args.format)
         if args.out:
             show_bytes(result.encode("ascii"), args.out)
