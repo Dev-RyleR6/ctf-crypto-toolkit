@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ctf-crypto-toolkit"
 dynamic = ["version"]
-description = "Offline command-line cryptography helpers for CTF practice"
+description = "Offline command-line cryptography and file-analysis helpers for CTF practice"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
@@ -24,13 +24,15 @@ ctf-crypto = "crypto_toolkit:main"
 
 [project.optional-dependencies]
 aes = ["cryptography>=41"]
+images = ["Pillow>=10"]
+all = ["cryptography>=41", "Pillow>=10"]
 
 [project.urls]
 Repository = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit"
 Issues = "https://github.com/Dev-RyleR6/ctf-crypto-toolkit/issues"
 
 [tool.setuptools]
-py-modules = ["crypto_toolkit", "crypto_advanced"]
+py-modules = ["crypto_toolkit", "crypto_advanced", "crypto_extra", "ctf_misc"]
 packages = ["ctf_crypto_docs"]
 
 [tool.setuptools.package-data]

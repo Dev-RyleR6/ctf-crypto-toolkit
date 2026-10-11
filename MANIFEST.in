@@ -2,4 +2,4 @@ include README.md CRYPTO_GUIDE.md LICENSE pyproject.toml .gitignore
 recursive-include scripts *.py
 recursive-include tests *.py
 recursive-include ctf_crypto_docs *.md *.py
-recursive-include examples *.txt
+recursive-include examples *.txt *.py

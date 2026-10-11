@@ -26,6 +26,10 @@ class DistributionTests(unittest.TestCase):
                 archive.extractall(destination / "extracted")
             with zipfile.ZipFile(portable) as archive:
                 self.assertEqual(set(archive.namelist()), set(release.PORTABLE_FILES) | {"__main__.py"})
+            practice = destination / "practice"
+            result = subprocess.run([sys.executable, str(destination / "extracted" / prefix / "examples" / "create_misc_demo.py"),
+                                     "--out-dir", str(practice)], cwd=folder, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
             for executable in (portable, destination / "extracted" / prefix / "crypto_toolkit.py"):
                 result = subprocess.run([sys.executable, str(executable), "decode", "--from", "hex",
                                          "--text", "666c61677b6865787d"], cwd=folder,
@@ -40,6 +44,16 @@ class DistributionTests(unittest.TestCase):
                                         capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("# LFSR + AES challenge workflow", result.stdout)
+                self.assertIn("# Miscellaneous file-analysis workflow", result.stdout)
+                result = subprocess.run([sys.executable, "-S", str(executable), "strings", "--file", str(practice / "mystery.bin")],
+                                        cwd=folder, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("flag{strings_demo}", result.stdout)
+                if importlib.util.find_spec("PIL") is not None:
+                    result = subprocess.run([sys.executable, str(executable), "lsb", "--file", str(practice / "picture.png"),
+                                             "--bytes", "16"], cwd=folder, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("flag{pixel_bits}", result.stdout)
                 if importlib.util.find_spec("cryptography") is not None:
                     fixture = destination / "extracted" / prefix / "examples" / "lfsr_aes_demo.txt"
                     result = subprocess.run([sys.executable, str(executable), "lfsr-aes", "--file", str(fixture),

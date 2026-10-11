@@ -12,3 +12,4 @@ htmlcov/
 Thumbs.db
 .env
 .env.*
+/practice/

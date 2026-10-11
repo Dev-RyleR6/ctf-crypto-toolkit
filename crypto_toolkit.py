@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline CTF helpers. Python 3.9+; optional cryptography dependency for AES."""
+"""Offline CTF crypto and misc helpers; optional AES and image dependencies."""
 
 import argparse
 import base64
@@ -13,11 +13,13 @@ import sys
 from urllib.parse import quote_from_bytes, unquote_to_bytes
 
 from crypto_advanced import aes_decrypt, lfsr_bits, pack_bits, parse_state, parse_taps, read_lfsr_output
+import crypto_extra
+import ctf_misc
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
-DOC_TOPICS = ("quickstart", "reference", "lfsr", "aes", "lfsr-aes")
+DOC_TOPICS = ("quickstart", "reference", "lfsr", "aes", "lfsr-aes", "classical", "misc")
 
 FORMATS = ("hex", "base64", "base32", "binary", "url")
 LETTER_FREQUENCIES = dict(zip(
@@ -198,13 +200,15 @@ def integer(value):
 
 def build_parser():
     parser = argparse.ArgumentParser(
-        description="Offline CTF cryptography toolkit. AES uses optional cryptography; other commands use the standard library.",
+        description="Offline CTF crypto and misc toolkit. Optional dependencies: cryptography for AES, Pillow for images.",
         epilog="Start: python -m crypto_toolkit decode --from base64 --text SGVsbG8=\n"
                "Each command has --help. Run 'docs' for the offline guide, or 'docs --list' for topics.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--version", action="version", version="CTF Crypto Toolkit " + __version__)
     commands = parser.add_subparsers(dest="command")
+    crypto_extra.add_commands(commands, add_source, add_output)
+    ctf_misc.add_commands(commands)
 
     p = commands.add_parser("docs", help="Read bundled documentation offline in your terminal")
     p.add_argument("topic", nargs="?", choices=DOC_TOPICS + ("all",), default="quickstart")
@@ -278,7 +282,11 @@ def build_parser():
 
 
 def run(args):
-    if args.command == "docs":
+    if args.command in crypto_extra.COMMANDS:
+        crypto_extra.run(args, read_input, decode, show_bytes, safe_text)
+    elif args.command in ctf_misc.COMMANDS:
+        ctf_misc.run(args, show_bytes)
+    elif args.command == "docs":
         if args.list_topics:
             print("Topics: " + ", ".join(DOC_TOPICS) + ", all")
         else:

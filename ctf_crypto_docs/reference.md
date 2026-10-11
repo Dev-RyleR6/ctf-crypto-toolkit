@@ -59,6 +59,25 @@ ctf-crypto docs lfsr-aes
 
 LFSR is dependency-free; AES and LFSR-AES need the optional `cryptography` package. AES supports ECB/CBC decryption with known keys and PKCS#7 or no padding. LFSR-AES derives a key by directly packing output bits. All conventions are explicit and configurable; no automatic challenge detection is performed.
 
+## More crypto and misc commands
+
+```sh
+ctf-crypto vigenere --text LXFOPVEFRNHR --key LEMON
+ctf-crypto vigenere-crack --file ciphertext.txt --key-size 5
+ctf-crypto xor-repeat-crack --file ciphertext.bin
+ctf-crypto hash-check --algorithm sha256 --digest ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad --wordlist words.txt
+ctf-crypto file-info --file mystery.bin --scan
+ctf-crypto strings --file mystery.bin --encoding all
+ctf-crypto hexdump --file mystery.bin
+ctf-crypto carve --file mystery.bin --offset 32 --length 128 --out slice.bin
+ctf-crypto zip-info --file archive.zip
+ctf-crypto zip-read --file archive.zip --member note.txt --out note.txt
+ctf-crypto image-info --file picture.png
+ctf-crypto lsb --file picture.png --bytes 16
+```
+
+Read `ctf-crypto docs classical` for cipher guessing and bounded local wordlist checks. Read `ctf-crypto docs misc` for file limits, offsets, ZIP handling, and image extraction. Guesses and signature matches are not verified solutions. Image commands need optional Pillow; the other commands in this section use the standard library.
+
 ## Documentation and output
 
 ```sh

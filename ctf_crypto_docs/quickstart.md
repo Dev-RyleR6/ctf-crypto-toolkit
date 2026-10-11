@@ -1,18 +1,18 @@
 # Quickstart
 
-CTF Crypto Toolkit runs locally with Python 3.9 or newer. It never calls AI or a network service. Encoding, Caesar, XOR, hashes, RSA arithmetic, LFSR generation, and documentation need only Python's standard library. AES commands additionally require `cryptography`.
+CTF Crypto Toolkit runs locally with Python 3.9 or newer. It never calls AI or a network service. Base crypto, classical-cipher analysis, file triage, ZIP tools, LFSR generation, and documentation use the standard library. AES requires optional `cryptography`; image metadata and bit extraction require optional `Pillow`.
 
 ## Install or run from source
 
 From the downloaded source folder, install into your activated virtual environment:
 
 ```sh
-python -m pip install ".[aes]"
+python -m pip install ".[all]"
 ctf-crypto --version
 ctf-crypto docs
 ```
 
-For the base commands without AES, use `python -m pip install .`.
+For base commands without AES/images, use `python -m pip install .`. Choose `".[aes]"` or `".[images]"` for one optional dependency group.
 
 You can also run directly without installing this project:
 
@@ -21,10 +21,10 @@ python crypto_toolkit.py docs
 python crypto_toolkit.py decode --from base64 --text "SGVsbG8="
 ```
 
-For AES when running from source or a portable `.pyz`, install its dependency in the same Python environment first:
+For AES/images when running from source or a portable `.pyz`, install their dependencies in the same Python environment first:
 
 ```sh
-python -m pip install cryptography
+python -m pip install cryptography Pillow
 ```
 
 Installation may need the internet; commands work offline once their dependencies are installed. If you already installed an older toolkit version, install the updated source again to update `ctf-crypto`.
@@ -37,6 +37,8 @@ ctf-crypto docs reference
 ctf-crypto docs lfsr
 ctf-crypto docs aes
 ctf-crypto docs lfsr-aes
+ctf-crypto docs classical
+ctf-crypto docs misc
 ctf-crypto docs all --out toolkit-guide.md
 ```
 
@@ -68,6 +70,8 @@ Replace `ctf-crypto` in any example with one of:
 
 - `python crypto_toolkit.py` from the source folder.
 - `python -m crypto_toolkit` after installation.
-- `python ctf-crypto-0.2.0.pyz` for the portable download.
+- `python ctf-crypto-0.3.0.pyz` for the portable download.
 
 On Windows, `py` may be the Python launcher. On macOS/Linux, use `python3` if needed. If `ctf-crypto` is not found, activate the environment where you installed it, or use that environment's Python executable with `-m crypto_toolkit`.
+
+For pipx users, install from the source folder with `python -m pipx install ".[all]"`. After pulling/downloading an update, reinstall from that folder with `python -m pipx install --force ".[all]"`.
